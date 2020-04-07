@@ -236,6 +236,8 @@ struct pico_device *get_sock_dev(struct pico_socket *s);
 # define is_sock_tcp(x) (0)
 #endif
 
+void setup_transport_in_listener(int (*cb)(struct pico_frame *f));
+
 /* Interface towards transport protocol */
 int pico_transport_process_in(struct pico_protocol *self, struct pico_frame *f);
 struct pico_socket *pico_socket_clone(struct pico_socket *facsimile);

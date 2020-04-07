@@ -1974,6 +1974,12 @@ static inline int pico_transport_crc_check(struct pico_frame *f)
 }
 #endif /* PICO_SUPPORT_CRC */
 
+static int (*transport_in_listener)(struct pico_frame *f) = NULL;
+
+void setup_transport_in_listener(int (*cb)(struct pico_frame *f)) {
+    transport_in_listener = cb;
+}
+
 int pico_transport_process_in(struct pico_protocol *self, struct pico_frame *f)
 {
     struct pico_trans *hdr = (struct pico_trans *) f->transport_hdr;
@@ -1992,6 +1998,10 @@ int pico_transport_process_in(struct pico_protocol *self, struct pico_frame *f)
 
     if ((hdr) && (pico_socket_deliver(self, f, hdr->dport) == 0))
         return ret;
+
+    if (transport_in_listener) {
+        if (!transport_in_listener(f)) { return 0; }
+    }
 
     if (!IS_BCAST(f)) {
         dbg("Socket not found... \n");
