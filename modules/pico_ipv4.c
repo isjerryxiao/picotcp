@@ -1051,14 +1051,11 @@ int pico_ipv4_frame_push(struct pico_frame *f, struct pico_ip4 *dst, uint8_t pro
         ttl = f->send_ttl;
     }
 
-    if (f->use_src_addr) {
-        uint32_t taddr = hdr->dst.addr;
-        hdr->dst.addr = dst->addr;
-        hdr->src.addr = taddr;
-    } else {
-        hdr->dst.addr = dst->addr;
+    hdr->dst.addr = dst->addr;
+    if (f->use_src_addr)
+        hdr->src.addr = f->use_src_addr;
+    else
         hdr->src.addr = link->address.addr;
-    }
 
     hdr->ttl = ttl;
     hdr->tos = f->send_tos;
