@@ -44,6 +44,12 @@ static int pico_icmp4_checksum(struct pico_frame *f)
 static void ping_recv_reply(struct pico_frame *f);
 #endif
 
+static int (*icmp4_in_listener)(struct pico_frame *f) = NULL;
+
+void setup_icmp4_in_listener(int (*cb)(struct pico_frame *f)) {
+    icmp4_in_listener = cb;
+}
+
 static int pico_icmp4_process_in(struct pico_protocol *self, struct pico_frame *f)
 {
     struct pico_icmp4_hdr *hdr = (struct pico_icmp4_hdr *) f->transport_hdr;
@@ -62,6 +68,10 @@ static int pico_icmp4_process_in(struct pico_protocol *self, struct pico_frame *
             /* The network duplicated the echo. Do not reply. */
             pico_frame_discard(f);
             return 0;
+        }
+
+        if (icmp4_in_listener) {
+            if (!icmp4_in_listener(f)) { return 0; }
         }
 
         firstpkt = 0;
@@ -134,6 +144,9 @@ static int pico_icmp4_notify(struct pico_frame *f, uint8_t type, uint8_t code)
     hdr->hun.ih_pmtu.ipm_void = 0;
     reply->transport_len = (uint16_t)(f_tot_len +  PICO_ICMPHDR_UN_SIZE);
     reply->payload = reply->transport_hdr + PICO_ICMPHDR_UN_SIZE;
+    reply->use_src_addr = f->use_src_addr;
+    struct pico_ipv4_hdr *rephdr = (struct pico_icmp4_hdr *) reply->net_hdr;
+    rephdr->dst.addr = info->dst.addr;
     memcpy(reply->payload, f->net_hdr, f_tot_len);
     pico_icmp4_checksum(reply);
     pico_ipv4_frame_push(reply, &info->src, PICO_PROTO_ICMP4);

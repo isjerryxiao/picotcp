@@ -136,6 +136,8 @@ struct pico_icmp4_stats
     int err;
 };
 
+void setup_icmp4_in_listener(int (*cb)(struct pico_frame *f));
+
 int pico_icmp4_port_unreachable(struct pico_frame *f);
 int pico_icmp4_proto_unreachable(struct pico_frame *f);
 int pico_icmp4_dest_unreachable(struct pico_frame *f);

@@ -92,6 +92,7 @@ struct pico_frame {
 
     uint8_t send_ttl; /* Special TTL/HOPS value, 0 = auto assign */
     uint8_t send_tos; /* Type of service */
+    uint8_t use_src_addr; /* Use dst addr for src */
 };
 
 /** frame alloc/dealloc/copy **/
